@@ -1,3 +1,4 @@
+// http://stackoverflow.com/questions/12830095/setting-http-headers-in-golang
 package main
 
 import (
@@ -8,18 +9,36 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 )
 
+var host = os.Getenv("QRCODE_GENERATOR_HOST")
+var port = os.Getenv("QRCODE_GENERATOR_PORT")
+
 func main() {
+	if host == "" {
+		host = "127.0.0.1"
+	}
+	if port == "" {
+		port = "8080"
+	}
+	log.Println("Answering requests on on http://" + host + ":" + port)
 	http.HandleFunc("/", QrGenerator)
-	err := http.ListenAndServe(":8080", nil)
+
+	err := http.ListenAndServe(host+":"+port, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
 }
 
 func QrGenerator(w http.ResponseWriter, r *http.Request) {
+	log.Println("http://"+host+":"+port, r.Body, r)
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	w.Header().Set("Access-Control-Allow-Headers",
+		"Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+
 	data := r.URL.Query().Get("data")
 	if data == "" {
 		http.Error(w, "", http.StatusBadRequest)

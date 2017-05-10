@@ -20,3 +20,18 @@ docker run -d -p 8080:8080 samwierema/go-qr-generator
 
 ## Author
 * [Sam Wierema](http://wiere.ma)
+
+---
+*Changes*
+
+- Add environment variables for host / port to listen on, default
+  to 127.0.0.1:8080
+- Add CORS header to enable cross container multi-process connect
+  e.g. to be paired in a kubernetes POD in a container
+
+```
+
+export QRCODE_GENERATOR_HOST=qrhost-ip
+export QRCODE_GENERATOR_PORT=qrport
+
+```

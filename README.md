@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/samwierema/go-qr-generator.svg?branch=master)](https://travis-ci.org/samwierema/go-qr-generator)
+[![Build Status](https://travis-ci.org/davidwalter0/go-qr-generator.svg?branch=master)](https://travis-ci.org/davidwalter0/go-qr-generator)
 
 # A QR code generator written in Golang
 Starts an HTTP server (listening on port 8080) that generates QR codes. Once installed and running (see below), the service accepts the following two parameters:
@@ -12,7 +12,7 @@ Download the source code and install it using the `go install` command.
 
 Alternatively, use Docker to run the service in a container:
 ```
-docker run -d -p 8080:8080 samwierema/go-qr-generator
+docker run -d -p 8080:8080 davidwalter0/go-qr-generator
 ```
 
 ## References

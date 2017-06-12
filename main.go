@@ -3,37 +3,75 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"github.com/boombuler/barcode"
 	"github.com/boombuler/barcode/qr"
+	"github.com/davidwalter0/envflagstructconfig"
+	"golang.org/x/net/http2"
 	"image/png"
 	"log"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
 )
 
-var host = os.Getenv("QRCODE_GENERATOR_HOST")
-var port = os.Getenv("QRCODE_GENERATOR_PORT")
+type App struct {
+	Cert  string
+	Key   string
+	Host  string
+	Port  string
+	HTTPS bool
+}
 
-func main() {
-	if host == "" {
-		host = "127.0.0.1"
-	}
-	if port == "" {
-		port = "8080"
-	}
-	log.Println("Answering requests on on http://" + host + ":" + port)
-	http.HandleFunc("/", QrGenerator)
+var app App
 
-	err := http.ListenAndServe(host+":"+port, nil)
-	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
+type MyHandler struct{}
+
+func (h *MyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	QrGenerator(w, r)
+}
+
+func run() {
+	var jsonText []byte
+	var err error
+	if err = envflagstructconfig.Parse(&app); err != nil {
+		log.Fatalf("%v\n", err)
+	}
+
+	jsonText, _ = json.MarshalIndent(&app, "", "  ")
+	protocol := "http://"
+	if app.HTTPS {
+		protocol = "https://"
+	}
+	log.Printf("\nEnvironment configuration\n%v\n", string(jsonText))
+
+	log.Println("Answering requests on " + protocol + app.Host + ":" + app.Port)
+	if app.HTTPS {
+		handler := MyHandler{}
+		server := http.Server{
+			Addr:    app.Host + ":" + app.Port,
+			Handler: &handler,
+		}
+		http2.ConfigureServer(&server, &http2.Server{})
+		err = server.ListenAndServeTLS(app.Cert, app.Key)
+		if err != nil {
+			log.Fatal("ListenAndServe: ", err)
+		}
+	} else {
+		http.HandleFunc("/", QrGenerator)
+		err = http.ListenAndServe(app.Host+":"+app.Port, nil)
+		if err != nil {
+			log.Fatal("ListenAndServe: ", err)
+		}
 	}
 }
 
+func main() {
+	run()
+}
+
 func QrGenerator(w http.ResponseWriter, r *http.Request) {
-	log.Println("http://"+host+":"+port, r.Body, r)
+	log.Println("http://"+app.Host+":"+app.Port, r.Body, r)
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 	w.Header().Set("Access-Control-Allow-Headers",

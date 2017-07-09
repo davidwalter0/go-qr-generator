@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"github.com/boombuler/barcode"
 	"github.com/boombuler/barcode/qr"
-	"github.com/davidwalter0/envflagstructconfig"
+	"github.com/davidwalter0/go-cfg"
 	"golang.org/x/net/http2"
 	"image/png"
 	"log"
@@ -34,7 +34,7 @@ func (h *MyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func run() {
 	var jsonText []byte
 	var err error
-	if err = envflagstructconfig.Parse(&app); err != nil {
+	if err = cfg.Parse(&app); err != nil {
 		log.Fatalf("%v\n", err)
 	}
 
